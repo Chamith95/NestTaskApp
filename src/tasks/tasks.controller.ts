@@ -1,9 +1,22 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { Task, TaskStatus } from './task.model';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
+import { Task } from './task.entity';
+import { TaskStatus } from './task-status.enum';
 
 @Controller('tasks')
 export class TasksController {
@@ -11,43 +24,38 @@ export class TasksController {
   }
 
   @Get()
-  getTasks(@Query(ValidationPipe) filterDto:GetTasksFilterDto) :Task[] {
-    if(Object.keys(filterDto).length){
-      return this.taskService.getTasksWithFilters(filterDto);
-    } else {
-      return this.taskService.getAllTasks();
-    }
+  getTasks(@Query(ValidationPipe) filterDto:GetTasksFilterDto){
+    return this.taskService.getTasks(filterDto)
 
   }
-
+  //
   @Get('/:id')
   getTaskById(
-    @Param('id') id:string,
-  ):Task {
+    @Param('id',ParseIntPipe) id:number,
+  ):Promise <Task> {
     return this.taskService.getTaskById(id);
   }
-
+  //
   @Patch('/:id/status')
-  updateStatusByIdd(
-    @Param('id') id:string,
+  updateStatusById(
+    @Param('id',ParseIntPipe) id:number,
     @Body('status',TaskStatusValidationPipe) status:TaskStatus,
-  ):Task {
+  ):Promise <Task> {
     return this.taskService.updateTaskStatus(id,status);
   }
-
+  //
   @Delete  ('/:id')
   deleteTaskById(
-    @Param('id') id:string,
-    @Body('status') status:TaskStatus,
-    ):Task {
-    return this.taskService.updateTaskStatus(id,status);
+    @Param('id',ParseIntPipe) id:number,
+    ):Promise <void> {
+    return this.taskService.deleteTaskById(id);
   }
-
+  //
   @Post()
   @UsePipes(ValidationPipe)
   createTask(
    @Body() createTaskDto:CreateTaskDto,
-  ):Task {
+  ):Promise<Task> {
    return this.taskService.createTask(createTaskDto);
   }
 
